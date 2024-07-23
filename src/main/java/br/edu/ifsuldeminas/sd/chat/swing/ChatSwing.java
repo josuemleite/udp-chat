@@ -1,15 +1,15 @@
 package br.edu.ifsuldeminas.sd.chat.swing;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.net.InetAddress;
-import java.util.Scanner;
 import br.edu.ifsuldeminas.sd.chat.ChatException;
 import br.edu.ifsuldeminas.sd.chat.ChatFactory;
 import br.edu.ifsuldeminas.sd.chat.MessageContainer;
 import br.edu.ifsuldeminas.sd.chat.Sender;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ChatSwing {
 
@@ -23,17 +23,19 @@ public class ChatSwing {
     private JButton sendButton;
     private JPanel topPanel;
     private JPanel bottomPanel;
-    private Sender sender;
     private String userName;
+
+    private Sender sender;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new ChatSwing().createAndShowGUI());
     }
 
     private void createAndShowGUI() {
-        frame = new JFrame("Chat Application");
+        frame = new JFrame("SI.zap");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 400);
+        frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
 
         topPanel = new JPanel();
@@ -43,11 +45,20 @@ public class ChatSwing {
         nameField = new JTextField();
         connectButton = new JButton("Conectar");
 
-        topPanel.add(new JLabel("Porta local:"));
+        JLabel localPort = new JLabel("Porta local:");
+        JLabel remotePort = new JLabel("Porta remota:");
+        JLabel userName = new JLabel("Nome:");
+
+        int padding = 10;
+        localPort.setBorder(new EmptyBorder(padding, padding, padding, padding));
+        remotePort.setBorder(new EmptyBorder(padding, padding, padding, padding));
+        userName.setBorder(new EmptyBorder(padding, padding, padding, padding));
+
+        topPanel.add(localPort);
         topPanel.add(localPortField);
-        topPanel.add(new JLabel("Porta remota:"));
+        topPanel.add(remotePort);
         topPanel.add(remotePortField);
-        topPanel.add(new JLabel("Nome:"));
+        topPanel.add(userName);
         topPanel.add(nameField);
         topPanel.add(new JLabel());
         topPanel.add(connectButton);
@@ -108,7 +119,7 @@ public class ChatSwing {
         @Override
         public void actionPerformed(ActionEvent e) {
             String message = messageField.getText();
-            if (!message.equals("")) {
+            if (!message.isEmpty()) {
                 message = String.format("%s%s%s", message, MessageContainer.FROM, userName);
                 try {
                     sender.send(message);
@@ -123,10 +134,11 @@ public class ChatSwing {
     private class SwingMessageContainer implements MessageContainer {
         @Override
         public void newMessage(String message) {
-            if (message == null || message.equals(""))
+            if (message == null || message.isEmpty()) {
                 return;
+            }
             String[] messageParts = message.split(MessageContainer.FROM);
-            SwingUtilities.invokeLater(() -> chatArea.append(String.format("%s> %s%n", messageParts[1], messageParts[0])));
+            SwingUtilities.invokeLater(() -> chatArea.append(String.format("%s> %s%n", messageParts[1].trim(), messageParts[0].trim())));
         }
     }
 }
