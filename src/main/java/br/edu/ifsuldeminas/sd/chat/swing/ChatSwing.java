@@ -7,6 +7,7 @@ import br.edu.ifsuldeminas.sd.chat.Sender;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +19,7 @@ public class ChatSwing {
     private JTextField remotePortField;
     private JTextField nameField;
     private JButton connectButton;
-    private JTextArea chatArea;
+    private JTextPane chatArea;
     private JTextField messageField;
     private JButton sendButton;
     private JPanel topPanel;
@@ -47,25 +48,26 @@ public class ChatSwing {
 
         JLabel localPort = new JLabel("Porta local:");
         JLabel remotePort = new JLabel("Porta remota:");
-        JLabel userName = new JLabel("Nome:");
+        JLabel userNameLabel = new JLabel("Nome:");
 
         int padding = 10;
         localPort.setBorder(new EmptyBorder(padding, padding, padding, padding));
         remotePort.setBorder(new EmptyBorder(padding, padding, padding, padding));
-        userName.setBorder(new EmptyBorder(padding, padding, padding, padding));
+        userNameLabel.setBorder(new EmptyBorder(padding, padding, padding, padding));
 
         topPanel.add(localPort);
         topPanel.add(localPortField);
         topPanel.add(remotePort);
         topPanel.add(remotePortField);
-        topPanel.add(userName);
+        topPanel.add(userNameLabel);
         topPanel.add(nameField);
         topPanel.add(new JLabel());
         topPanel.add(connectButton);
 
         bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
-        chatArea = new JTextArea();
+        chatArea = new JTextPane();
+        chatArea.setEditorKit(new MyEditorKit());
         chatArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(chatArea);
         messageField = new JTextField();
@@ -85,6 +87,23 @@ public class ChatSwing {
 
         connectButton.addActionListener(new ConnectButtonListener());
         sendButton.addActionListener(new SendButtonListener());
+
+        connectButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "connectAction");
+        connectButton.getActionMap().put("connectAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                connectButton.doClick();
+                messageField.requestFocusInWindow();
+            }
+        });
+
+        sendButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "sendAction");
+        sendButton.getActionMap().put("sendAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendButton.doClick();
+            }
+        });
 
         frame.setVisible(true);
     }
@@ -120,9 +139,10 @@ public class ChatSwing {
         public void actionPerformed(ActionEvent e) {
             String message = messageField.getText();
             if (!message.isEmpty()) {
-                message = String.format("%s%s%s", message, MessageContainer.FROM, userName);
+                String formattedMessage = String.format("%s%s%s", message, MessageContainer.FROM, userName);
                 try {
-                    sender.send(message);
+                    sender.send(formattedMessage);
+                    displayMessage(message, userName, "blue");
                     messageField.setText("");
                 } catch (ChatException chatException) {
                     JOptionPane.showMessageDialog(frame, "Erro ao enviar mensagem: " + chatException.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -138,7 +158,86 @@ public class ChatSwing {
                 return;
             }
             String[] messageParts = message.split(MessageContainer.FROM);
-            SwingUtilities.invokeLater(() -> chatArea.append(String.format("%s> %s%n", messageParts[1].trim(), messageParts[0].trim())));
+            String senderName = messageParts[1].trim();
+            String messageText = messageParts[0].trim();
+            String color;
+            if (senderName.equals(userName)) {
+                color = "blue";
+            } else {
+                color = "black";
+            }
+            SwingUtilities.invokeLater(() -> displayMessage(messageText, senderName, color));
+        }
+    }
+
+    private void displayMessage(String messageText, String senderName, String color) {
+        try {
+            StyledDocument doc = chatArea.getStyledDocument();
+            Style style = doc.addStyle("Style", null);
+            if (color.equals("blue")) {
+                StyleConstants.setForeground(style, Color.BLUE);
+            } else {
+                StyleConstants.setForeground(style, Color.BLACK);
+            }
+
+            doc.insertString(doc.getLength(), senderName + "> " + messageText + "\n", style);
+        } catch (Exception e) {
+            System.out.println("Error displaying message: " + e.getMessage());
+        }
+    }
+
+    static class MyEditorKit extends StyledEditorKit {
+        public ViewFactory getViewFactory() {
+            return new StyledViewFactory();
+        }
+
+        static class StyledViewFactory implements ViewFactory {
+            public View create(Element elem) {
+                String kind = elem.getName();
+
+                if (kind != null) {
+                    switch (kind) {
+                        case AbstractDocument.ContentElementName:
+                            return new LabelView(elem);
+                        case AbstractDocument.ParagraphElementName:
+                            return new ParagraphView(elem);
+                        case AbstractDocument.SectionElementName:
+                            return new CenteredBoxView(elem, View.Y_AXIS);
+                        case StyleConstants.ComponentElementName:
+                            return new ComponentView(elem);
+                        case StyleConstants.IconElementName:
+                            return new IconView(elem);
+                    }
+                }
+
+                return new LabelView(elem);
+            }
+        }
+
+        static class CenteredBoxView extends BoxView {
+            public CenteredBoxView(Element elem, int axis) {
+                super(elem, axis);
+            }
+
+            protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+                super.layoutMajorAxis(targetSpan, axis, offsets, spans);
+
+                int textBlockHeight = 0;
+                int offset;
+
+                for (int span : spans) {
+                    textBlockHeight += span;
+                }
+
+                // display text vertically at the bottom
+                offset = (targetSpan - textBlockHeight);
+
+                // display text vertically centered
+                //offset = (targetSpan - textBlockHeight) / 2;
+                for (int i = 0; i < offsets.length; i++) {
+                    offsets[i] += offset;
+                }
+            }
         }
     }
 }
