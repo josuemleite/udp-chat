@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ChatSwing {
-
     private JFrame frame;
     private JTextField localPortField;
     private JTextField remotePortField;
