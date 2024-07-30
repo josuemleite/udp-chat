@@ -40,14 +40,37 @@ public class ChatSwing {
 
         topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(4, 2));
+        topPanel.setBackground(Color.DARK_GRAY);
+
         localPortField = new JTextField();
+        localPortField.setBackground(Color.DARK_GRAY);
+        localPortField.setForeground(Color.WHITE);
+        localPortField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+
         remotePortField = new JTextField();
+        remotePortField.setBackground(Color.DARK_GRAY);
+        remotePortField.setForeground(Color.WHITE);
+        remotePortField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+
         nameField = new JTextField();
+        nameField.setBackground(Color.DARK_GRAY);
+        nameField.setForeground(Color.WHITE);
+        nameField.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+
         connectButton = new JButton("Conectar");
+        connectButton.setBackground(Color.BLUE);
+        connectButton.setForeground(Color.WHITE);
+        connectButton.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
 
         JLabel localPort = new JLabel("Porta local:");
+        localPort.setForeground(Color.WHITE);
+        localPort.setFont(new Font("Arial", Font.BOLD, 12));
         JLabel remotePort = new JLabel("Porta remota:");
+        remotePort.setForeground(Color.WHITE);
+        remotePort.setFont(new Font("Arial", Font.BOLD, 12));
         JLabel userNameLabel = new JLabel("Nome:");
+        userNameLabel.setForeground(Color.WHITE);
+        userNameLabel.setFont(new Font("Arial", Font.BOLD, 12));
 
         int padding = 10;
         localPort.setBorder(new EmptyBorder(padding, padding, padding, padding));
@@ -65,12 +88,19 @@ public class ChatSwing {
 
         bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
+
         chatArea = new JTextPane();
         chatArea.setEditorKit(new MyEditorKit());
         chatArea.setEditable(false);
+        chatArea.setBackground(Color.LIGHT_GRAY);
+        chatArea.setForeground(Color.WHITE);
+
         JScrollPane scrollPane = new JScrollPane(chatArea);
         messageField = new JTextField();
         sendButton = new JButton("Enviar");
+        sendButton.setBackground(Color.GRAY);
+        sendButton.setForeground(Color.WHITE);
+
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BorderLayout());
         inputPanel.add(messageField, BorderLayout.CENTER);
